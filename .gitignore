@@ -4,6 +4,7 @@ w1*.log
 .DS_Store
 .vscode/
 db.sqlite3
+file_storage/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
