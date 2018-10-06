@@ -16,7 +16,6 @@ class Email(models.Model):
     olm_filename = models.CharField(
         verbose_name='olm 文件名',
         max_length=255,
-        default='',
         blank=False,
         db_index=True,
     )
@@ -32,37 +31,170 @@ class Email(models.Model):
     message_id = models.CharField(
         verbose_name='message_id',
         max_length=255,
-        default='',
         blank=False,
         db_index=True,
     )
 
-    topic = models.CharField(
-        verbose_name='topic',
+    thread_topic = models.CharField(
+        verbose_name='thread_topic',
         max_length=255,
-        default='',
         blank=True,
-        null=True,
         db_index=True,
-    )
-
-    received_time = models.DateTimeField(
-        verbose_name='received_time',
-        null=True,
     )
 
     subject = models.CharField(
-        verbose_name='subject',
         max_length=255,
-        default='',
         blank=True,
-        db_index=True,
+    )
+
+    thread_index = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    received_time = models.DateTimeField(
+        null=True,
+    )
+
+    sent_time = models.DateTimeField(
+        null=True,
+    )
+
+    completed_datetime = models.DateTimeField(
+        null=True,
+    )
+
+    due_datetime = models.DateTimeField(
+        null=True,
+    )
+
+    start_datetime = models.DateTimeField(
+        null=True,
+    )
+
+    mod_date = models.DateTimeField(
+        null=True,
+    )
+
+    reminder_datetime = models.DateTimeField(
+        null=True,
+    )
+
+    has_html = models.BooleanField(
         null=True,
     )
 
     body = models.TextField(
-        verbose_name='body',
-        default='',
         blank=True,
+    )
+
+    html_body = models.TextField(
+        blank=True,
+    )
+
+    references = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    replyto = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    receive_representing_name = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    calendar_accept_status = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    send_read_receipt = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    mentioned_me = models.BooleanField(
+        null=True
+    )
+
+    inference_classfication = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    has_richtext = models.BooleanField(
         null=True,
+    )
+
+    is_read = models.BooleanField(
+        null=True,
+    )
+
+    override_encoding = models.BooleanField(
+        null=True,
+    )
+
+    priority = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    source = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    flag_status = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    was_sent = models.BooleanField(
+        null=True,
+    )
+
+    calendar_message = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    is_meeting = models.BooleanField(
+        null=True,
+    )
+
+    is_outgoing = models.BooleanField(
+        null=True,
+    )
+
+    is_outgoing_meeting_respoonse = models.BooleanField(
+        null=True,
+    )
+
+    bcc_addresses = models.ManyToManyField(
+        'Address',
+        related_name='bcc_addresses+',
+    )
+
+    replyto_addresses = models.ManyToManyField(
+        'Address',
+        related_name='replyto_addresses+',
+    )
+
+    to_addresses = models.ManyToManyField(
+        'Address',
+        related_name='to_addresses+',
+    )
+
+    from_addresses = models.ManyToManyField(
+        'Address',
+        related_name='from_addresses+',
+    )
+
+    cc_addresses = models.ManyToManyField(
+        'Address',
+        related_name='cc_addresses+',
     )

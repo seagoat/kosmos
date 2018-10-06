@@ -1,6 +1,7 @@
-# olm2django
+# kosmos: a olm2django tool
 
 可以查看、检索微软 Outlook 导出的 OLM 邮件存档文件的本地系统（使用 Django 搭建）
+
 A local Django system, used to view and search email data, which imported from Microsoft Outlook OLM archive file
 
 ## 背景

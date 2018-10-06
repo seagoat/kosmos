@@ -8,6 +8,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from dateutil import parser
 from django.core.files import File
+from django.utils.timezone import make_aware
 
 from .models import Address, Attachment, Email, KosmosError
 from .xml_parser import emails
@@ -156,12 +157,13 @@ def parse_email(olm_filename, olm_item_url):
                 result = {}
                 result['olm_filename'] = olm_filename
                 result['olm_item_url'] = olm_item_url
+
                 # def get_OPFMessageCopyMessageID(self): return self.OPFMessageCopyMessageID
                 # def set_OPFMessageCopyMessageID(self, OPFMessageCopyMessageID): self.OPFMessageCopyMessageID = OPFMessageCopyMessageID
                 if email.get_OPFMessageCopyMessageID():
                     message_id = email.get_OPFMessageCopyMessageID().get_valueOf_()
                     result['message_id'] = message_id
-                    log.info('message_id:[{}]'.format(message_id))
+                    log.debug('message_id:[{}]'.format(message_id))
                     # assert(0)
 
                 # def get_OPFMessageCopyThreadTopic(self): return self.OPFMessageCopyThreadTopic
@@ -170,6 +172,14 @@ def parse_email(olm_filename, olm_item_url):
                     thread_topic = email.get_OPFMessageCopyThreadTopic().get_valueOf_()
                     result['thread_topic'] = thread_topic
                     log.debug('thread_topic:[{}]'.format(thread_topic))
+
+                # def get_OPFMessageCopySubject(self): return self.OPFMessageCopySubject
+                # def set_OPFMessageCopySubject(self, OPFMessageCopySubject): self.OPFMessageCopySubject = OPFMessageCopySubject
+                if email.get_OPFMessageCopySubject():
+                    subject = email.get_OPFMessageCopySubject().get_valueOf_()
+                    result['subject'] = subject
+                    log.debug('subject:[{}]'.format(subject))
+                    # assert(0)
 
                 # def get_OPFMessageCopyThreadIndex(self): return self.OPFMessageCopyThreadIndex
                 # def set_OPFMessageCopyThreadIndex(self, OPFMessageCopyThreadIndex): self.OPFMessageCopyThreadIndex = OPFMessageCopyThreadIndex
@@ -182,24 +192,24 @@ def parse_email(olm_filename, olm_item_url):
                 # def get_OPFMessageCopyReceivedTime(self): return self.OPFMessageCopyReceivedTime
                 # def set_OPFMessageCopyReceivedTime(self, OPFMessageCopyReceivedTime): self.OPFMessageCopyReceivedTime = OPFMessageCopyReceivedTime
                 if email.get_OPFMessageCopyReceivedTime():
-                    received_time = parser.parse(
-                        email.get_OPFMessageCopyReceivedTime().get_valueOf_())
+                    received_time = make_aware(parser.parse(
+                        email.get_OPFMessageCopyReceivedTime().get_valueOf_()))
                     result['received_time'] = received_time
                     log.debug('received_time:[{}]'.format(received_time))
 
                 # def get_OPFMessageCopySentTime(self): return self.OPFMessageCopySentTime
                 # def set_OPFMessageCopySentTime(self, OPFMessageCopySentTime): self.OPFMessageCopySentTime = OPFMessageCopySentTime
                 if email.get_OPFMessageCopySentTime():
-                    sent_time = parser.parse(
-                        email.get_OPFMessageCopySentTime().get_valueOf_())
+                    sent_time = make_aware(parser.parse(
+                        email.get_OPFMessageCopySentTime().get_valueOf_()))
                     result['sent_time'] = sent_time
                     log.debug('sent_time:[{}]'.format(sent_time))
 
                 # def get_OPFMessageCopyCompletedDateTime(self): return self.OPFMessageCopyCompletedDateTime
                 # def set_OPFMessageCopyCompletedDateTime(self, OPFMessageCopyCompletedDateTime): self.OPFMessageCopyCompletedDateTime = OPFMessageCopyCompletedDateTime
                 if email.get_OPFMessageCopyCompletedDateTime():
-                    completed_datetime = parser.parse(
-                        email.get_OPFMessageCopyCompletedDateTime().get_valueOf_())
+                    completed_datetime = make_aware(parser.parse(
+                        email.get_OPFMessageCopyCompletedDateTime().get_valueOf_()))
                     result['completed_datetime'] = completed_datetime
                     log.debug('completed_datetime:[{}]'.format(
                         completed_datetime))
@@ -207,32 +217,32 @@ def parse_email(olm_filename, olm_item_url):
                 # def get_OPFMessageCopyDueDateTime(self): return self.OPFMessageCopyDueDateTime
                 # def set_OPFMessageCopyDueDateTime(self, OPFMessageCopyDueDateTime): self.OPFMessageCopyDueDateTime = OPFMessageCopyDueDateTime
                 if email.get_OPFMessageCopyDueDateTime():
-                    due_datetime = parser.parse(
-                        email.get_OPFMessageCopyDueDateTime().get_valueOf_())
+                    due_datetime = make_aware(parser.parse(
+                        email.get_OPFMessageCopyDueDateTime().get_valueOf_()))
                     result['due_datetime'] = due_datetime
                     log.debug('due_datetime:[{}]'.format(due_datetime))
 
                 # def get_OPFMessageCopyStartDateTime(self): return self.OPFMessageCopyStartDateTime
                 # def set_OPFMessageCopyStartDateTime(self, OPFMessageCopyStartDateTime): self.OPFMessageCopyStartDateTime = OPFMessageCopyStartDateTime
                 if email.get_OPFMessageCopyStartDateTime():
-                    start_datetime = parser.parse(
-                        email.get_OPFMessageCopyStartDateTime().get_valueOf_())
+                    start_datetime = make_aware(parser.parse(
+                        email.get_OPFMessageCopyStartDateTime().get_valueOf_()))
                     result['start_datetime'] = start_datetime
                     log.debug('start_datetime:[{}]'.format(start_datetime))
 
                 # def get_OPFMessageCopyModDate(self): return self.OPFMessageCopyModDate
                 # def set_OPFMessageCopyModDate(self, OPFMessageCopyModDate): self.OPFMessageCopyModDate = OPFMessageCopyModDate
                 if email.get_OPFMessageCopyModDate():
-                    mod_date = parser.parse(
-                        email.get_OPFMessageCopyModDate().get_valueOf_())
+                    mod_date = make_aware(parser.parse(
+                        email.get_OPFMessageCopyModDate().get_valueOf_()))
                     result['mod_date'] = mod_date
                     log.debug('mode_date:[{}]'.format(mod_date))
 
                 # def get_OPFMessageCopyReminderDateTime(self): return self.OPFMessageCopyReminderDateTime
                 # def set_OPFMessageCopyReminderDateTime(self, OPFMessageCopyReminderDateTime): self.OPFMessageCopyReminderDateTime = OPFMessageCopyReminderDateTime
                 if email.get_OPFMessageCopyReminderDateTime():
-                    reminder_datetime = parser.parse(
-                        email.get_OPFMessageCopyReminderDateTime().get_valueOf_())
+                    reminder_datetime = make_aware(parser.parse(
+                        email.get_OPFMessageCopyReminderDateTime().get_valueOf_()))
                     result['reminder_datetime'] = reminder_datetime
                     log.debug('reminder_datetime:[{}]'.format(
                         reminder_datetime))
@@ -241,7 +251,8 @@ def parse_email(olm_filename, olm_item_url):
                 # def get_OPFMessageGetHasHTML(self): return self.OPFMessageGetHasHTML
                 # def set_OPFMessageGetHasHTML(self, OPFMessageGetHasHTML): self.OPFMessageGetHasHTML = OPFMessageGetHasHTML
                 if email.get_OPFMessageGetHasHTML():
-                    has_html = email.get_OPFMessageGetHasHTML().get_valueOf_()
+                    has_html = bool(float(
+                        email.get_OPFMessageGetHasHTML().get_valueOf_()))
                     log.debug('has_html:[{}]'.format(has_html))
                     result['has_html'] = has_html
                     # assert(0)
@@ -262,46 +273,6 @@ def parse_email(olm_filename, olm_item_url):
                     result['html_body'] = html_body
                     # assert(0)
 
-                # def get_OPFMessageCopyPrimaryCategory(self): return self.OPFMessageCopyPrimaryCategory
-                # def set_OPFMessageCopyPrimaryCategory(self, OPFMessageCopyPrimaryCategory): self.OPFMessageCopyPrimaryCategory = OPFMessageCopyPrimaryCategory
-                primary_category = email.get_OPFMessageCopyPrimaryCategory()
-                if primary_category:
-                    background_color = primary_category.get_OPFCategoryCopyBackgroundColor().get_valueOf_()
-                    category_name = primary_category.get_OPFCategoryCopyName().get_valueOf_()
-                    result['primary_category_background_color'] = background_color
-                    result['primary_category_category_name'] = category_name
-
-                    log.debug(
-                        'primary_category:[{}]/[{}]'.format(category_name, background_color))
-
-                # def get_OPFMessageCopyCategoryList(self): return self.OPFMessageCopyCategoryList
-                # def set_OPFMessageCopyCategoryList(self, OPFMessageCopyCategoryList): self.OPFMessageCopyCategoryList = OPFMessageCopyCategoryList
-                category_list = email.get_OPFMessageCopyCategoryList()
-                django_category_list = []
-                if category_list:
-                    for category in category_list.get_category():
-                        background_color = category.get_OPFCategoryCopyBackgroundColor()
-                        category_name = category.get_OPFCategoryCopyName()
-                        django_category = {}
-                        django_category['background_color'] = background_color
-                        django_category['category_name'] = category_name
-                        django_category_list.append(django_category)
-                        log.debug('category_list:[{}], [{}]'.format(
-                            background_color, category_name))
-                result['category_list'] = django_category_list
-
-                # def get_OPFMessageCopyMeetingData(self): return self.OPFMessageCopyMeetingData
-                # def set_OPFMessageCopyMeetingData(self, OPFMessageCopyMeetingData): self.OPFMessageCopyMeetingData = OPFMessageCopyMeetingData
-                if email.get_OPFMessageCopyMeetingData():
-                    meeting_data = email.get_OPFMessageCopyMeetingData().get_valueOf_()
-                    result['meeting_data'] = meeting_data
-                    log.debug('meeting_data:[{}]'.format(meeting_data))
-                    # Todo: need implement reference process future
-                    # 2018-08-01 03:20:41 PM|WARNING|Skip not xml file: [Local/com.microsoft.__Messages/Sent Items/com.microsoft.__Attachments/637B248F-0DFA-46B9-B0C0-708DEEDE34DF@pset.suntec.net.ics]
-                    # 2018-08-01 03:20:41
-                    # PM|INFO|meeting_data:[Local/com.microsoft.__Messages/Sent
-                    # Items/com.microsoft.__Attachments/637B248F-0DFA-46B9-B0C0-708DEEDE34DF@pset.suntec.net.ics]
-
                 # def get_OPFMessageCopyReferences(self): return self.OPFMessageCopyReferences
                 # def set_OPFMessageCopyReferences(self, OPFMessageCopyReferences): self.OPFMessageCopyReferences = OPFMessageCopyReferences
                 if email.get_OPFMessageCopyReferences():
@@ -319,6 +290,150 @@ def parse_email(olm_filename, olm_item_url):
                     log.debug('replyto:[{}]'.format(replyto))
                     # Todo: need to check what is replyto
                     # assert(0)
+
+                # def get_OPFMessageCopyReceivedRepresentingName(self): return self.OPFMessageCopyReceivedRepresentingName
+                # def set_OPFMessageCopyReceivedRepresentingName(self, OPFMessageCopyReceivedRepresentingName): self.OPFMessageCopyReceivedRepresentingName = OPFMessageCopyReceivedRepresentingName
+                if email.get_OPFMessageCopyReceivedRepresentingName():
+                    receive_representing_name = email.get_OPFMessageCopyReceivedRepresentingName().get_valueOf_()
+                    result['receive_representing_name'] = receive_representing_name
+                    log.debug('receive_representing_name:[{}]'.format(
+                        receive_representing_name))
+                    assert(0)
+
+                # def get_OPFMessageGetCalendarAcceptStatus(self): return self.OPFMessageGetCalendarAcceptStatus
+                # def set_OPFMessageGetCalendarAcceptStatus(self, OPFMessageGetCalendarAcceptStatus): self.OPFMessageGetCalendarAcceptStatus = OPFMessageGetCalendarAcceptStatus
+                if email.get_OPFMessageGetCalendarAcceptStatus():
+                    calendar_accept_status = email.get_OPFMessageGetCalendarAcceptStatus().get_valueOf_()
+                    result['calendar_accept_status'] = calendar_accept_status
+
+                    log.debug('calendar_accept_status:[{}]'.format(
+                        calendar_accept_status))
+
+                # def get_OPFMessageGetSendReadReceipt(self): return self.OPFMessageGetSendReadReceipt
+                # def set_OPFMessageGetSendReadReceipt(self, OPFMessageGetSendReadReceipt): self.OPFMessageGetSendReadReceipt = OPFMessageGetSendReadReceipt
+                if email.get_OPFMessageGetSendReadReceipt():
+                    send_read_receipt = email.get_OPFMessageGetSendReadReceipt().get_valueOf_()
+                    result['send_read_receipt'] = send_read_receipt
+
+                    log.debug('send_read_receipt:[{}]'.format(
+                        send_read_receipt))
+
+                # def get_OPFMessageGetMentionedMe(self): return self.OPFMessageGetMentionedMe
+                # def set_OPFMessageGetMentionedMe(self, OPFMessageGetMentionedMe): self.OPFMessageGetMentionedMe = OPFMessageGetMentionedMe
+                if email.get_OPFMessageGetMentionedMe():
+                    mentioned_me = bool(
+                        float(email.get_OPFMessageGetMentionedMe().get_valueOf_()))
+                    result['mentioned_me'] = mentioned_me
+
+                    log.debug('mentioned_me:[{}]'.format(mentioned_me))
+
+                # def get_OPFMessageGetInferenceClassification(self): return self.OPFMessageGetInferenceClassification
+                # def set_OPFMessageGetInferenceClassification(self, OPFMessageGetInferenceClassification): self.OPFMessageGetInferenceClassification = OPFMessageGetInferenceClassification
+                if email.get_OPFMessageGetInferenceClassification():
+                    inference_classfication = email.get_OPFMessageGetInferenceClassification().get_valueOf_()
+                    result['inference_classfication'] = inference_classfication
+                    log.debug('inference_classfication:[{}]'.format(
+                        inference_classfication))
+
+                # def get_OPFMessageGetHasRichText(self): return self.OPFMessageGetHasRichText
+                # def set_OPFMessageGetHasRichText(self, OPFMessageGetHasRichText): self.OPFMessageGetHasRichText = OPFMessageGetHasRichText
+                if email.get_OPFMessageGetHasRichText():
+                    has_richtext = bool(
+                        float(email.get_OPFMessageGetHasRichText().get_valueOf_()))
+                    result['has_richtext'] = has_richtext
+                    log.debug('has_richtext:[{}]'.format(has_richtext))
+                    # assert(0)
+
+                # def get_OPFMessageGetIsRead(self): return self.OPFMessageGetIsRead
+                # def set_OPFMessageGetIsRead(self, OPFMessageGetIsRead): self.OPFMessageGetIsRead = OPFMessageGetIsRead
+                if email.get_OPFMessageGetIsRead():
+                    is_read = bool(
+                        float(email.get_OPFMessageGetIsRead().get_valueOf_()))
+                    result['is_read'] = is_read
+                    log.debug('is_read:[{}]'.format(is_read))
+                    # assert(0)
+
+                # def get_OPFMessageGetOverrideEncoding(self): return self.OPFMessageGetOverrideEncoding
+                # def set_OPFMessageGetOverrideEncoding(self, OPFMessageGetOverrideEncoding): self.OPFMessageGetOverrideEncoding = OPFMessageGetOverrideEncoding
+                if email.get_OPFMessageGetOverrideEncoding():
+                    override_encoding = float(
+                        bool(email.get_OPFMessageGetOverrideEncoding().get_valueOf_()))
+                    result['override_encoding'] = override_encoding
+                    log.debug('override_encoding:[{}]'.format(
+                        override_encoding))
+                    # assert(0)
+
+                # def get_OPFMessageGetPriority(self): return self.OPFMessageGetPriority
+                # def set_OPFMessageGetPriority(self, OPFMessageGetPriority): self.OPFMessageGetPriority = OPFMessageGetPriority
+                if email.get_OPFMessageGetPriority():
+                    priority = email.get_OPFMessageGetPriority().get_valueOf_()
+                    result['priority'] = priority
+                    log.debug('priority:[{}]'.format(priority))
+                    # assert(0)
+
+                # def get_OPFMessageCopySource(self): return self.OPFMessageCopySource
+                # def set_OPFMessageCopySource(self, OPFMessageCopySource): self.OPFMessageCopySource = OPFMessageCopySource
+                if email.get_OPFMessageCopySource():
+                    source = email.get_OPFMessageCopySource().get_valueOf_()
+                    result['source'] = source
+                    log.debug('source:[{}]'.format(source))
+                    # Todo: need to check what is source, seems to be a email
+
+                # def get_OPFMessageCopyGetFlagStatus(self): return self.OPFMessageCopyGetFlagStatus
+                # def set_OPFMessageCopyGetFlagStatus(self, OPFMessageCopyGetFlagStatus): self.OPFMessageCopyGetFlagStatus = OPFMessageCopyGetFlagStatus
+                if email.get_OPFMessageCopyGetFlagStatus():
+                    flag_status = email.get_OPFMessageCopyGetFlagStatus().get_valueOf_()
+                    result['flag_status'] = flag_status
+                    log.debug('flag_status:[{}]'.format(flag_status))
+                    # assert(0)
+
+                # def get_OPFMessageGetWasSent(self): return self.OPFMessageGetWasSent
+                # def set_OPFMessageGetWasSent(self, OPFMessageGetWasSent): self.OPFMessageGetWasSent = OPFMessageGetWasSent
+                if email.get_OPFMessageGetWasSent():
+                    was_sent = bool(
+                        float(email.get_OPFMessageGetWasSent().get_valueOf_()))
+                    result['was_sent'] = was_sent
+                    log.debug('was_sent:[{}]'.format(was_sent))
+                    # assert(0)
+
+                # def get_OPFMessageIsCalendarMessage(self): return self.OPFMessageIsCalendarMessage
+                # def set_OPFMessageIsCalendarMessage(self, OPFMessageIsCalendarMessage): self.OPFMessageIsCalendarMessage = OPFMessageIsCalendarMessage
+                if email.get_OPFMessageIsCalendarMessage():
+                    calendar_message = email.get_OPFMessageIsCalendarMessage().get_valueOf_()
+                    result['calendar_message'] = calendar_message
+                    log.debug('calendar_message:[{}]'.format(calendar_message))
+                    # assert(0)
+
+                # def get_OPFMessageIsMeeting(self): return self.OPFMessageIsMeeting
+                # def set_OPFMessageIsMeeting(self, OPFMessageIsMeeting): self.OPFMessageIsMeeting = OPFMessageIsMeeting
+                if email.get_OPFMessageIsMeeting():
+                    is_meeting = bool(
+                        float(email.get_OPFMessageIsMeeting().get_valueOf_()))
+                    result['is_meeting'] = is_meeting
+                    log.debug('is_meeting:[{}]'.format(is_meeting))
+                    assert(0)
+
+                # def get_OPFMessageIsOutgoing(self): return self.OPFMessageIsOutgoing
+                # def set_OPFMessageIsOutgoing(self, OPFMessageIsOutgoing): self.OPFMessageIsOutgoing = OPFMessageIsOutgoing
+                if email.get_OPFMessageIsOutgoing():
+                    is_outgoing = bool(
+                        float(email.get_OPFMessageIsOutgoing().get_valueOf_()))
+                    result['is_outgoing'] = is_outgoing
+                    log.debug('is_outgoing:[{}]'.format(is_outgoing))
+                    # assert(0)
+
+                # def get_OPFMessageIsOutgoingMeetingResponse(self): return self.OPFMessageIsOutgoingMeetingResponse
+                # def set_OPFMessageIsOutgoingMeetingResponse(self, OPFMessageIsOutgoingMeetingResponse): self.OPFMessageIsOutgoingMeetingResponse = OPFMessageIsOutgoingMeetingResponse
+                if email.get_OPFMessageIsOutgoingMeetingResponse():
+                    is_outgoing_meeting_respoonse = bool(
+                        float(email.get_OPFMessageIsOutgoingMeetingResponse().get_valueOf_()))
+                    result['is_outgoing_meeting_respoonse'] = is_outgoing_meeting_respoonse
+                    log.debug('is_outgoing_meeting_respoonse:[{}]'.format(
+                        is_outgoing_meeting_respoonse))
+                    # assert(0)
+
+                ################################################################
+                # address start
 
                 # def get_OPFMessageCopyBCCAddresses(self): return self.OPFMessageCopyBCCAddresses
                 # def set_OPFMessageCopyBCCAddresses(self, OPFMessageCopyBCCAddresses): self.OPFMessageCopyBCCAddresses = OPFMessageCopyBCCAddresses
@@ -367,147 +482,56 @@ def parse_email(olm_filename, olm_item_url):
                 log.debug('cc_addresses: {}'.format(
                     result['cc_addresses']))
 
-                # def get_OPFMessageCopyReceivedRepresentingName(self): return self.OPFMessageCopyReceivedRepresentingName
-                # def set_OPFMessageCopyReceivedRepresentingName(self, OPFMessageCopyReceivedRepresentingName): self.OPFMessageCopyReceivedRepresentingName = OPFMessageCopyReceivedRepresentingName
-                if email.get_OPFMessageCopyReceivedRepresentingName():
-                    receive_representing_name = parser.parse(
-                        email.get_OPFMessageCopyReceivedRepresentingName().get_valueOf_())
-                    result['receive_representing_name'] = receive_representing_name
-                    log.debug('receive_representing_name:[{}]'.format(
-                        receive_representing_name))
-                    assert(0)
+                # address end
+                ################################################################
 
-                # def get_OPFMessageGetCalendarAcceptStatus(self): return self.OPFMessageGetCalendarAcceptStatus
-                # def set_OPFMessageGetCalendarAcceptStatus(self, OPFMessageGetCalendarAcceptStatus): self.OPFMessageGetCalendarAcceptStatus = OPFMessageGetCalendarAcceptStatus
-                if email.get_OPFMessageGetCalendarAcceptStatus():
-                    calendar_accept_status = email.get_OPFMessageGetCalendarAcceptStatus().get_valueOf_()
-                    result['calendar_accept_status'] = calendar_accept_status
+                ########################################################
+                # Category Start
+                # def get_OPFMessageCopyPrimaryCategory(self): return self.OPFMessageCopyPrimaryCategory
+                # def set_OPFMessageCopyPrimaryCategory(self, OPFMessageCopyPrimaryCategory): self.OPFMessageCopyPrimaryCategory = OPFMessageCopyPrimaryCategory
+                primary_category = email.get_OPFMessageCopyPrimaryCategory()
+                if primary_category:
+                    background_color = primary_category.get_OPFCategoryCopyBackgroundColor().get_valueOf_()
+                    category_name = primary_category.get_OPFCategoryCopyName().get_valueOf_()
+                    result['primary_category_background_color'] = background_color
+                    result['primary_category_category_name'] = category_name
 
-                    log.debug('calendar_accept_status:[{}]'.format(
-                        calendar_accept_status))
+                    log.debug(
+                        'primary_category:[{}]/[{}]'.format(category_name, background_color))
 
-                # def get_OPFMessageGetSendReadReceipt(self): return self.OPFMessageGetSendReadReceipt
-                # def set_OPFMessageGetSendReadReceipt(self, OPFMessageGetSendReadReceipt): self.OPFMessageGetSendReadReceipt = OPFMessageGetSendReadReceipt
-                if email.get_OPFMessageGetSendReadReceipt():
-                    send_read_receipt = email.get_OPFMessageGetSendReadReceipt().get_valueOf_()
-                    result['send_read_receipt'] = send_read_receipt
+                # def get_OPFMessageCopyCategoryList(self): return self.OPFMessageCopyCategoryList
+                # def set_OPFMessageCopyCategoryList(self, OPFMessageCopyCategoryList): self.OPFMessageCopyCategoryList = OPFMessageCopyCategoryList
+                category_list = email.get_OPFMessageCopyCategoryList()
+                django_category_list = []
+                if category_list:
+                    for category in category_list.get_category():
+                        background_color = category.get_OPFCategoryCopyBackgroundColor()
+                        category_name = category.get_OPFCategoryCopyName()
+                        django_category = {}
+                        django_category['background_color'] = background_color
+                        django_category['category_name'] = category_name
+                        django_category_list.append(django_category)
+                        log.debug('category_list:[{}], [{}]'.format(
+                            background_color, category_name))
+                result['category_list'] = django_category_list
+                # Category End
+                ########################################################
 
-                    log.debug('send_read_receipt:[{}]'.format(
-                        send_read_receipt))
-
-                # def get_OPFMessageGetMentionedMe(self): return self.OPFMessageGetMentionedMe
-                # def set_OPFMessageGetMentionedMe(self, OPFMessageGetMentionedMe): self.OPFMessageGetMentionedMe = OPFMessageGetMentionedMe
-                if email.get_OPFMessageGetMentionedMe():
-                    mentioned_me = email.get_OPFMessageGetMentionedMe().get_valueOf_()
-                    result['mentioned_me'] = mentioned_me
-
-                    log.debug('mentioned_me:[{}]'.format(mentioned_me))
-
-                # def get_OPFMessageGetInferenceClassification(self): return self.OPFMessageGetInferenceClassification
-                # def set_OPFMessageGetInferenceClassification(self, OPFMessageGetInferenceClassification): self.OPFMessageGetInferenceClassification = OPFMessageGetInferenceClassification
-                if email.get_OPFMessageGetInferenceClassification():
-                    inference_classfication = email.get_OPFMessageGetInferenceClassification().get_valueOf_()
-                    result['inference_classfication'] = inference_classfication
-                    log.debug('inference_classfication:[{}]'.format(
-                        inference_classfication))
-
-                # def get_OPFMessageGetHasRichText(self): return self.OPFMessageGetHasRichText
-                # def set_OPFMessageGetHasRichText(self, OPFMessageGetHasRichText): self.OPFMessageGetHasRichText = OPFMessageGetHasRichText
-                if email.get_OPFMessageGetHasRichText():
-                    has_richtext = email.get_OPFMessageGetHasRichText().get_valueOf_()
-                    result['has_richtext'] = has_richtext
-                    log.debug('has_richtext:[{}]'.format(has_richtext))
-                    # assert(0)
-
-                # def get_OPFMessageGetIsRead(self): return self.OPFMessageGetIsRead
-                # def set_OPFMessageGetIsRead(self, OPFMessageGetIsRead): self.OPFMessageGetIsRead = OPFMessageGetIsRead
-                if email.get_OPFMessageGetIsRead():
-                    is_read = email.get_OPFMessageGetIsRead().get_valueOf_()
-                    result['is_read'] = is_read
-                    log.debug('is_read:[{}]'.format(is_read))
-                    # assert(0)
-
-                # def get_OPFMessageGetOverrideEncoding(self): return self.OPFMessageGetOverrideEncoding
-                # def set_OPFMessageGetOverrideEncoding(self, OPFMessageGetOverrideEncoding): self.OPFMessageGetOverrideEncoding = OPFMessageGetOverrideEncoding
-                if email.get_OPFMessageGetOverrideEncoding():
-                    override_encoding = email.get_OPFMessageGetOverrideEncoding().get_valueOf_()
-                    result['override_encoding'] = override_encoding
-                    log.debug('override_encoding:[{}]'.format(
-                        override_encoding))
-                    # assert(0)
-
-                # def get_OPFMessageGetPriority(self): return self.OPFMessageGetPriority
-                # def set_OPFMessageGetPriority(self, OPFMessageGetPriority): self.OPFMessageGetPriority = OPFMessageGetPriority
-                if email.get_OPFMessageGetPriority():
-                    priority = email.get_OPFMessageGetPriority().get_valueOf_()
-                    result['priority'] = priority
-                    log.debug('priority:[{}]'.format(priority))
-                    # assert(0)
-
-                # def get_OPFMessageCopySubject(self): return self.OPFMessageCopySubject
-                # def set_OPFMessageCopySubject(self, OPFMessageCopySubject): self.OPFMessageCopySubject = OPFMessageCopySubject
-                if email.get_OPFMessageCopySubject():
-                    subject = email.get_OPFMessageCopySubject().get_valueOf_()
-                    result['subject'] = subject
-                    log.debug('subject:[{}]'.format(subject))
-                    # assert(0)
-
-                # def get_OPFMessageCopySource(self): return self.OPFMessageCopySource
-                # def set_OPFMessageCopySource(self, OPFMessageCopySource): self.OPFMessageCopySource = OPFMessageCopySource
-                if email.get_OPFMessageCopySource():
-                    source = email.get_OPFMessageCopySource().get_valueOf_()
-                    result['source'] = source
-                    log.debug('source:[{}]'.format(source))
-                    # Todo: need to check what is source, seems to be a email
-
-                # def get_OPFMessageCopyGetFlagStatus(self): return self.OPFMessageCopyGetFlagStatus
-                # def set_OPFMessageCopyGetFlagStatus(self, OPFMessageCopyGetFlagStatus): self.OPFMessageCopyGetFlagStatus = OPFMessageCopyGetFlagStatus
-                if email.get_OPFMessageCopyGetFlagStatus():
-                    flag_status = email.get_OPFMessageCopyGetFlagStatus().get_valueOf_()
-                    result['flag_status'] = flag_status
-                    log.debug('flag_status:[{}]'.format(flag_status))
-                    # assert(0)
-
-                # def get_OPFMessageGetWasSent(self): return self.OPFMessageGetWasSent
-                # def set_OPFMessageGetWasSent(self, OPFMessageGetWasSent): self.OPFMessageGetWasSent = OPFMessageGetWasSent
-                if email.get_OPFMessageGetWasSent():
-                    was_sent = email.get_OPFMessageGetWasSent().get_valueOf_()
-                    result['was_sent'] = was_sent
-                    log.debug('was_sent:[{}]'.format(was_sent))
-                    # assert(0)
-
-                # def get_OPFMessageIsCalendarMessage(self): return self.OPFMessageIsCalendarMessage
-                # def set_OPFMessageIsCalendarMessage(self, OPFMessageIsCalendarMessage): self.OPFMessageIsCalendarMessage = OPFMessageIsCalendarMessage
-                if email.get_OPFMessageIsCalendarMessage():
-                    calendar_message = email.get_OPFMessageIsCalendarMessage().get_valueOf_()
-                    result['calendar_message'] = calendar_message
-                    log.debug('calendar_message:[{}]'.format(calendar_message))
-                    # assert(0)
-
-                # def get_OPFMessageIsMeeting(self): return self.OPFMessageIsMeeting
-                # def set_OPFMessageIsMeeting(self, OPFMessageIsMeeting): self.OPFMessageIsMeeting = OPFMessageIsMeeting
-                if email.get_OPFMessageIsMeeting():
-                    is_meeting = email.get_OPFMessageIsMeeting().get_valueOf_()
-                    result['is_meeting'] = is_meeting
-                    log.debug('is_meeting:[{}]'.format(is_meeting))
-                    assert(0)
-
-                # def get_OPFMessageIsOutgoing(self): return self.OPFMessageIsOutgoing
-                # def set_OPFMessageIsOutgoing(self, OPFMessageIsOutgoing): self.OPFMessageIsOutgoing = OPFMessageIsOutgoing
-                if email.get_OPFMessageIsOutgoing():
-                    is_outgoing = email.get_OPFMessageIsOutgoing().get_valueOf_()
-                    result['is_outgoing'] = is_outgoing
-                    log.debug('is_outgoing:[{}]'.format(is_outgoing))
-                    # assert(0)
-
-                # def get_OPFMessageIsOutgoingMeetingResponse(self): return self.OPFMessageIsOutgoingMeetingResponse
-                # def set_OPFMessageIsOutgoingMeetingResponse(self, OPFMessageIsOutgoingMeetingResponse): self.OPFMessageIsOutgoingMeetingResponse = OPFMessageIsOutgoingMeetingResponse
-                if email.get_OPFMessageIsOutgoingMeetingResponse():
-                    is_outgoing_meeting_respoonse = email.get_OPFMessageIsOutgoingMeetingResponse().get_valueOf_()
-                    result['is_outgoing_meeting_respoonse'] = is_outgoing_meeting_respoonse
-                    log.debug('is_outgoing_meeting_respoonse:[{}]'.format(
-                        is_outgoing_meeting_respoonse))
-                    # assert(0)
+                #############################################
+                # Meeting Start
+                # def get_OPFMessageCopyMeetingData(self): return self.OPFMessageCopyMeetingData
+                # def set_OPFMessageCopyMeetingData(self, OPFMessageCopyMeetingData): self.OPFMessageCopyMeetingData = OPFMessageCopyMeetingData
+                if email.get_OPFMessageCopyMeetingData():
+                    meeting_data = email.get_OPFMessageCopyMeetingData().get_valueOf_()
+                    result['meeting_data'] = meeting_data
+                    log.debug('meeting_data:[{}]'.format(meeting_data))
+                    # Todo: need implement reference process future
+                    # 2018-08-01 03:20:41 PM|WARNING|Skip not xml file: [Local/com.microsoft.__Messages/Sent Items/com.microsoft.__Attachments/637B248F-0DFA-46B9-B0C0-708DEEDE34DF@pset.suntec.net.ics]
+                    # 2018-08-01 03:20:41
+                    # PM|INFO|meeting_data:[Local/com.microsoft.__Messages/Sent
+                    # Items/com.microsoft.__Attachments/637B248F-0DFA-46B9-B0C0-708DEEDE34DF@pset.suntec.net.ics]
+                # Meeting End
+                #############################################
 
                 # def get_OPFMessageCopyAttachmentList(self): return self.OPFMessageCopyAttachmentList
                 # def set_OPFMessageCopyAttachmentList(self, OPFMessageCopyAttachmentList): self.OPFMessageCopyAttachmentList = OPFMessageCopyAttachmentList
@@ -516,7 +540,7 @@ def parse_email(olm_filename, olm_item_url):
                 if attachments:
                     count = 0
                     for attachment in attachments.get_messageAttachment():
-                        log.info('Attchment [{}]: {}, {}, {}, {}, {}, {}'.format(
+                        log.debug('Attchment [{}]: {}, {}, {}, {}, {}, {}'.format(
                             count,
                             attachment.get_OPFAttachmentContentExtension(),
                             float(attachment.get_OPFAttachmentContentFileSize()
@@ -563,17 +587,59 @@ def add_email(email_result, full_check=False):
             email_result['message_id'],
         ))
         return django_email.id
+    # 1 create email
+    django_email.thread_topic = email_result.get('thread_topic', '')
+    django_email.subject = email_result.get('subject', '')
+    django_email.thread_index = email_result.get('thread_index', '')
+    django_email.received_time = email_result.get('received_time', None)
+    django_email.sent_time = email_result.get('sent_time', None)
+    django_email.completed_datetime = email_result.get(
+        'completed_datetime', None)
+    django_email.due_datetime = email_result.get('due_datetime', None)
+    django_email.start_datetime = email_result.get('start_datetime', None)
+    django_email.mod_date = email_result.get('mod_date', None)
+    django_email.reminder_datetime = email_result.get(
+        'reminder_datetime', None)
+    django_email.has_html = email_result.get('has_html', None)
+    django_email.body = email_result.get('body', '')
+    django_email.html_body = email_result.get('html_body', '')
+    django_email.references = email_result.get('references', '')
+    django_email.replyto = email_result.get('replyto', '')
+    django_email.receive_representing_name = email_result.get(
+        'receive_representing_name', '')
+    django_email.calendar_accept_status = email_result.get(
+        'calendar_accept_status', '')
+    django_email.send_read_receipt = email_result.get('send_read_receipt', '')
+    django_email.mentioned_me = email_result.get('mentioned_me', None)
+    django_email.inference_classfication = email_result.get(
+        'inference_classfication', '')
+    django_email.has_richtext = email_result.get('has_richtext', None)
+    django_email.is_read = email_result.get('is_read', None)
+    django_email.override_encoding = email_result.get('override_encoding', '')
+    django_email.priority = email_result.get('priority', '')
+    django_email.source = email_result.get('source', '')
+    django_email.flag_status = email_result.get('flag_status', '')
+    django_email.was_sent = email_result.get('is_read', None)
+    django_email.calendar_message = email_result.get('calendar_message', '')
+    django_email.is_meeting = email_result.get('is_meeting', None)
+    django_email.is_outgoing = email_result.get('is_outgoing', None)
+    django_email.is_outgoing_meeting_respoonse = email_result.get(
+        'is_outgoing_meeting_respoonse', None)
 
-    # 1. before create email
-    # 1.1 create addresses
-
-    # 1.2 create category
-
-    # 1.3 create meeting
-
-    # 2 create email
-    django_email.subject = email_result.get('subject', None)
     django_email.save()
 
-    # 3 after create mail
-    # 3.0 create attachment
+    # 2. after create email
+    # 2.1 create addresses
+    for bcc_address_result in email_result.get('bcc_addresses', None):
+        django_bcc_address, created = Address.objects.get_or_create(
+            address=bcc_address_result.get('address', ''),
+            name=bcc_address_result.get('name', ''),
+            content_type=bcc_address_result.get('content_type', ''),
+        )
+        django_email.bcc_addresses.add(django_bcc_address)
+
+    # 2.2 create category
+
+    # 2.3 create meeting
+
+    # 2.4 create attachment
