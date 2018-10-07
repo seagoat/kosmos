@@ -57,12 +57,15 @@ def parse_olm_dirs(olm_dirs):
 
 @shared_task
 def parse_olm(olm_filename):
+    if not zipfile.is_zipfile(olm_filename):
+        log.error('[{}] is not a zipfile'.format(olm_filename))
+        return
+
     with zipfile.ZipFile(olm_filename, mode='r', allowZip64=True) as zf:
         olm_item_urls = zf.namelist()
-
     log.info('{} items in {}'.format(len(olm_item_urls), olm_filename))
     for olm_item_url in olm_item_urls:
-        parse_olm_item(olm_filename, olm_item_url)
+        parse_olm_item.delay(olm_filename, olm_item_url)
 
 
 @shared_task
