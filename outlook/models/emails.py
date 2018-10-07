@@ -22,7 +22,7 @@ class Email(models.Model):
 
     olm_item_url = models.CharField(
         verbose_name='olm 内路径',
-        max_length=255,
+        max_length=256,
         default='',
         blank=False,
         db_index=True,
@@ -30,25 +30,24 @@ class Email(models.Model):
 
     message_id = models.CharField(
         verbose_name='message_id',
-        max_length=255,
+        max_length=257,
         blank=False,
         db_index=True,
     )
 
     thread_topic = models.CharField(
         verbose_name='thread_topic',
-        max_length=255,
+        max_length=258,
         blank=True,
         db_index=True,
     )
 
     subject = models.CharField(
-        max_length=255,
+        max_length=259,
         blank=True,
     )
 
-    thread_index = models.CharField(
-        max_length=255,
+    thread_index = models.TextField(
         blank=True,
     )
 
@@ -92,28 +91,27 @@ class Email(models.Model):
         blank=True,
     )
 
-    references = models.CharField(
-        max_length=255,
+    references = models.TextField(
         blank=True,
     )
 
     replyto = models.CharField(
-        max_length=255,
+        max_length=261,
         blank=True,
     )
 
     receive_representing_name = models.CharField(
-        max_length=255,
+        max_length=262,
         blank=True,
     )
 
     calendar_accept_status = models.CharField(
-        max_length=255,
+        max_length=263,
         blank=True,
     )
 
     send_read_receipt = models.CharField(
-        max_length=255,
+        max_length=264,
         blank=True,
     )
 
@@ -122,7 +120,7 @@ class Email(models.Model):
     )
 
     inference_classfication = models.CharField(
-        max_length=255,
+        max_length=265,
         blank=True,
     )
 
@@ -139,17 +137,17 @@ class Email(models.Model):
     )
 
     priority = models.CharField(
-        max_length=255,
+        max_length=266,
         blank=True,
     )
 
     source = models.CharField(
-        max_length=255,
+        max_length=267,
         blank=True,
     )
 
     flag_status = models.CharField(
-        max_length=255,
+        max_length=268,
         blank=True,
     )
 
@@ -158,7 +156,7 @@ class Email(models.Model):
     )
 
     calendar_message = models.CharField(
-        max_length=255,
+        max_length=269,
         blank=True,
     )
 
@@ -174,27 +172,50 @@ class Email(models.Model):
         null=True,
     )
 
+    sender_addresses = models.ManyToManyField(
+        'Address',
+        related_name='sender_address',
+    )
+
     bcc_addresses = models.ManyToManyField(
         'Address',
-        related_name='bcc_addresses+',
+        related_name='bcc_address',
     )
 
     replyto_addresses = models.ManyToManyField(
         'Address',
-        related_name='replyto_addresses+',
+        related_name='replyto_address',
     )
 
     to_addresses = models.ManyToManyField(
         'Address',
-        related_name='to_addresses+',
+        related_name='to_address',
     )
 
     from_addresses = models.ManyToManyField(
         'Address',
-        related_name='from_addresses+',
+        related_name='from_address',
     )
 
     cc_addresses = models.ManyToManyField(
         'Address',
-        related_name='cc_addresses+',
+        related_name='cc_address',
+    )
+
+    primary_category = models.ForeignKey(
+        'Category',
+        related_name='primary_category',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    category_list = models.ManyToManyField(
+        'Category',
+        related_name='category_list',
+    )
+
+    meeting_data = models.OneToOneField(
+        'Meeting',
+        null=True,
+        on_delete=models.CASCADE,
     )

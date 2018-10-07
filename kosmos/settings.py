@@ -39,6 +39,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 STATIC_URL = '/static/'
 
+MEDIA_URL = '/files/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'file_storage')
 
 # Quick-start development settings - unsuitable for production
@@ -103,9 +104,21 @@ WSGI_APPLICATION = 'kosmos.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(MEDIA_ROOT, 'db', 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'localhost',  # set in docker-compose.yml
+        'PORT': 32769  # default postgres port
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(MEDIA_ROOT, 'db', 'db.sqlite3'),
+    #     'OPTIONS': {
+    #         # ...
+    #         'timeout': 20,
+    #         # ...
+    #     }
+    # }
 }
 
 

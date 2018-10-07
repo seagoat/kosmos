@@ -10,7 +10,7 @@ from dateutil import parser
 from django.core.files import File
 from django.utils.timezone import make_aware
 
-from .models import Address, Attachment, Email, KosmosError
+from .models import Address, Attachment, Category, Email, KosmosError, Meeting
 from .xml_parser import emails
 
 log = get_task_logger(__name__)
@@ -20,8 +20,14 @@ def parse_address(address):
     result = {}
 
     result['address'] = address.get_OPFContactEmailAddressAddress()
+    if result['address'] is None:
+        result['address'] = ''
     result['name'] = address.get_OPFContactEmailAddressName()
+    if result['name'] is None:
+        result['name'] = ''
     result['content_type'] = address.get_OPFContactEmailAddressType()
+    if result['content_type'] is None:
+        result['content_type'] = ''
 
     return result
 
@@ -74,13 +80,13 @@ def parse_olm_item(olm_filename, olm_item_url):
         log.debug(msg)
         return True
     elif dirs[-1] == 'Contacts.xml':
-        log.debug(olm_item_url)
-        parse_contacts.delay(olm_filename, olm_item_url)
+        log.warning(olm_item_url)
+        # parse_contacts.delay(olm_filename, olm_item_url)
         return True
 
     elif dirs[-1] == 'Calendar.xml':
-        log.debug(olm_item_url)
-        parse_calendar.delay(olm_filename, olm_item_url)
+        log.warning(olm_item_url)
+        # parse_calendar.delay(olm_filename, olm_item_url)
         return True
 
     elif dirs[1] == 'com.microsoft.__Messages':
@@ -96,48 +102,62 @@ def parse_olm_item(olm_filename, olm_item_url):
 
         log.debug('Parsing email xml: [{}]'.format(olm_item_url))
         parse_email.delay(olm_filename, olm_item_url)
-        # if ret == False:
-        #     msg = 'parse_email failed to parse:[{}]'.format(olm_item_url)
-        #     log.error(msg)
-        #     return False
-        # else:
-        #     return True
+
         return True
 
     else:
         msg = 'Unsupported xml file: [{}]'.format(olm_item_url)
-        log.error(msg)
+        log.warning(msg)
         return False
 
 
-@shared_task
-def record_error(olm_filename, olm_item_url):
-    kosmos_error, created = KosmosError.objects.get_or_create(
+def export_fileobj_to_django(olm_filename, olm_item_url, django_cls):
+    django_obj, created = django_cls.objects.get_or_create(
         olm_filename=olm_filename,
         olm_item_url=olm_item_url,
     )
 
     if not created:
-        return kosmos_error.id
+        return django_obj
 
     with zipfile.ZipFile(olm_filename, mode='r', allowZip64=True) as zf:
-        with zf.open(olm_item_url) as xml_item:
-            kosmos_error.file_obj = File(xml_item)
-            kosmos_error.save()
+        with zf.open(olm_item_url) as zip_data:
+            django_obj.file_obj = File(zip_data)
+            django_obj.save()
 
-    return kosmos_error.id
+    return django_obj
+
+
+@shared_task
+def record_error(olm_filename, olm_item_url):
+
+    return export_fileobj_to_django(olm_filename, olm_item_url, KosmosError).id
+    # kosmos_error, created = KosmosError.objects.get_or_create(
+    #     olm_filename=olm_filename,
+    #     olm_item_url=olm_item_url,
+    # )
+
+    # if not created:
+    #     return kosmos_error.id
+
+    # with zipfile.ZipFile(olm_filename, mode='r', allowZip64=True) as zf:
+    #     with zf.open(olm_item_url) as xml_item:
+    #         kosmos_error.file_obj = File(xml_item)
+    #         kosmos_error.save()
+
+    # return kosmos_error.id
 
 
 @shared_task
 def parse_calendar(olm_filename, olm_item_url):
-    # todo
-    pass
+    record_error.delay(olm_filename, olm_item_url)
+    return False
 
 
 @shared_task
 def parse_contacts(olm_filename, olm_item_url):
-    # todo
-    pass
+    record_error.delay(olm_filename, olm_item_url)
+    return False
 
 
 @shared_task
@@ -150,6 +170,7 @@ def parse_email(olm_filename, olm_item_url):
             except:
                 log.error('Failed to decode xml[{}|{}]'.format(
                     olm_filename, olm_item_url))
+
                 record_error.delay(olm_filename, olm_item_url)
                 return False
 
@@ -438,49 +459,56 @@ def parse_email(olm_filename, olm_item_url):
                 # def get_OPFMessageCopyBCCAddresses(self): return self.OPFMessageCopyBCCAddresses
                 # def set_OPFMessageCopyBCCAddresses(self, OPFMessageCopyBCCAddresses): self.OPFMessageCopyBCCAddresses = OPFMessageCopyBCCAddresses
                 bcc_addresses = email.get_OPFMessageCopyBCCAddresses()
-                result['bcc_addresses'] = parse_addresses(bcc_addresses)
-                log.debug('bcc_addresses: {}'.format(result['bcc_addresses']))
+                if bcc_addresses:
+                    result['bcc_addresses'] = parse_addresses(bcc_addresses)
+                    log.debug('bcc_addresses: {}'.format(
+                        result['bcc_addresses']))
 
                 # def get_OPFMessageCopyReplyToAddresses(self): return self.OPFMessageCopyReplyToAddresses
                 # def set_OPFMessageCopyReplyToAddresses(self, OPFMessageCopyReplyToAddresses): self.OPFMessageCopyReplyToAddresses = OPFMessageCopyReplyToAddresses
                 replyto_addresses = email.get_OPFMessageCopyReplyToAddresses()
-                result['replyto_addresses'] = parse_addresses(
-                    replyto_addresses)
-                log.debug('replyto_addresses: {}'.format(
-                    result['replyto_addresses']))
+                if replyto_addresses:
+                    result['replyto_addresses'] = parse_addresses(
+                        replyto_addresses)
+                    log.debug('replyto_addresses: {}'.format(
+                        result['replyto_addresses']))
 
                 # def get_OPFMessageCopySenderAddress(self): return self.OPFMessageCopySenderAddress
                 # def set_OPFMessageCopySenderAddress(self, OPFMessageCopySenderAddress): self.OPFMessageCopySenderAddress = OPFMessageCopySenderAddress
-                sender_addresses = email.get_OPFMessageCopySenderAddress()
-                result['sender_addresses'] = parse_addresses(
-                    sender_addresses)
-                log.debug('sender_addresses: {}'.format(
-                    result['sender_addresses']))
-                # assert(0)
+                sender_address = email.get_OPFMessageCopySenderAddress()
+                if sender_address:
+                    result['sender_address'] = parse_addresses(
+                        sender_address)
+                    log.debug('sender_address: {}'.format(
+                        result['sender_address']))
+                    # assert(0)
 
                 # def get_OPFMessageCopyToAddresses(self): return self.OPFMessageCopyToAddresses
                 # def set_OPFMessageCopyToAddresses(self, OPFMessageCopyToAddresses): self.OPFMessageCopyToAddresses = OPFMessageCopyToAddresses
                 to_addresses = email.get_OPFMessageCopyToAddresses()
-                result['to_addresses'] = parse_addresses(
-                    to_addresses)
-                log.debug('to_addresses: {}'.format(
-                    result['to_addresses']))
+                if to_addresses:
+                    result['to_addresses'] = parse_addresses(
+                        to_addresses)
+                    log.debug('to_addresses: {}'.format(
+                        result['to_addresses']))
 
                 # def get_OPFMessageCopyFromAddresses(self): return self.OPFMessageCopyFromAddresses
                 # def set_OPFMessageCopyFromAddresses(self, OPFMessageCopyFromAddresses): self.OPFMessageCopyFromAddresses = OPFMessageCopyFromAddresses
                 from_addresses = email.get_OPFMessageCopyFromAddresses()
-                result['from_addresses'] = parse_addresses(
-                    from_addresses)
-                log.debug('from_addresses: {}'.format(
-                    result['from_addresses']))
+                if from_addresses:
+                    result['from_addresses'] = parse_addresses(
+                        from_addresses)
+                    log.debug('from_addresses: {}'.format(
+                        result['from_addresses']))
 
                 # def get_OPFMessageCopyCCAddresses(self): return self.OPFMessageCopyCCAddresses
                 # def set_OPFMessageCopyCCAddresses(self, OPFMessageCopyCCAddresses): self.OPFMessageCopyCCAddresses = OPFMessageCopyCCAddresses
                 cc_addresses = email.get_OPFMessageCopyCCAddresses()
-                result['cc_addresses'] = parse_addresses(
-                    cc_addresses)
-                log.debug('cc_addresses: {}'.format(
-                    result['cc_addresses']))
+                if cc_addresses:
+                    result['cc_addresses'] = parse_addresses(
+                        cc_addresses)
+                    log.debug('cc_addresses: {}'.format(
+                        result['cc_addresses']))
 
                 # address end
                 ################################################################
@@ -493,8 +521,9 @@ def parse_email(olm_filename, olm_item_url):
                 if primary_category:
                     background_color = primary_category.get_OPFCategoryCopyBackgroundColor().get_valueOf_()
                     category_name = primary_category.get_OPFCategoryCopyName().get_valueOf_()
-                    result['primary_category_background_color'] = background_color
-                    result['primary_category_category_name'] = category_name
+                    result['primary_category'] = {}
+                    result['primary_category']['background_color'] = background_color
+                    result['primary_category']['category_name'] = category_name
 
                     log.debug(
                         'primary_category:[{}]/[{}]'.format(category_name, background_color))
@@ -555,17 +584,19 @@ def parse_email(olm_filename, olm_item_url):
                         attachment_django['content_extension'] = attachment.get_OPFAttachmentContentExtension(
                         )
 
-                        attachment_django['content_filesize'] = attachment.get_OPFAttachmentContentFileSize(
-                        ),
+                        attachment_django['content_filesize'] = float(
+                            attachment.get_OPFAttachmentContentFileSize())
                         # attachment.get_OPFAttachmentContentID(),
                         attachment_django['content_type'] = attachment.get_OPFAttachmentContentType(
                         )
                         attachment_django['content_name'] = attachment.get_OPFAttachmentName(
                         )
-                        attachment_django['content_url'] = attachment.get_OPFAttachmentURL(
+                        attachment_django['olm_item_url'] = attachment.get_OPFAttachmentURL(
                         )
                         count += 1
                         result['attachments'].append(attachment_django)
+
+                # job used to add email to django site
                 add_email.delay(result)
             return True
             # todo: need implement attachment process future
@@ -573,26 +604,30 @@ def parse_email(olm_filename, olm_item_url):
 
 @shared_task
 def add_email(email_result, full_check=False):
+    olm_filename = email_result.get('olm_filename', '')
+    olm_item_url = email_result.get('olm_item_url', '')
+    message_id = email_result.get('message_id', '')
 
     django_email, created = Email.objects.get_or_create(
-        olm_filename=email_result['olm_filename'],
-        olm_item_url=email_result['olm_item_url'],
-        message_id=email_result['message_id'],
+        olm_filename=olm_filename,
+        olm_item_url=olm_item_url,
+        message_id=message_id,
     )
 
     if (not created) and (not full_check):
         log.debug('Skip existed email object:[{}|{}|{}]'.format(
-            email_result['olm_filename'],
-            email_result['olm_item_url'],
-            email_result['message_id'],
+            olm_filename,
+            olm_item_url,
+            message_id,
         ))
         return django_email.id
+
     # 1 create email
     django_email.thread_topic = email_result.get('thread_topic', '')
     django_email.subject = email_result.get('subject', '')
     django_email.thread_index = email_result.get('thread_index', '')
     django_email.received_time = email_result.get('received_time', None)
-    django_email.sent_time = email_result.get('sent_time', None)
+    django_email.sent_time = parser.parse(email_result.get('sent_time', None))
     django_email.completed_datetime = email_result.get(
         'completed_datetime', None)
     django_email.due_datetime = email_result.get('due_datetime', None)
@@ -630,16 +665,133 @@ def add_email(email_result, full_check=False):
 
     # 2. after create email
     # 2.1 create addresses
-    for bcc_address_result in email_result.get('bcc_addresses', None):
+    django_bcc_addresses = []
+    for bcc_address_result in email_result.get('bcc_addresses', []):
         django_bcc_address, created = Address.objects.get_or_create(
             address=bcc_address_result.get('address', ''),
             name=bcc_address_result.get('name', ''),
             content_type=bcc_address_result.get('content_type', ''),
         )
-        django_email.bcc_addresses.add(django_bcc_address)
+        django_bcc_addresses.append(django_bcc_address)
+    if django_bcc_addresses:
+        django_email.bcc_addresses.add(*django_bcc_addresses)
+
+    django_replyto_addresses = []
+    for replyto_address_result in email_result.get('replyto_addresses', []):
+        django_replyto_address, created = Address.objects.get_or_create(
+            address=replyto_address_result.get('address', ''),
+            name=replyto_address_result.get('name', ''),
+            content_type=replyto_address_result.get('content_type', ''),
+        )
+        django_replyto_addresses.append(django_replyto_address)
+    if django_replyto_addresses:
+        django_email.replyto_addresses.add(*django_replyto_addresses)
+
+    django_sender_addresses = []
+    for sender_address_result in email_result.get('sender_addresses', []):
+        django_sender_address, created = Address.objects.get_or_create(
+            address=sender_address_result.get('address', ''),
+            name=sender_address_result.get('name', ''),
+            content_type=sender_address_result.get('content_type', ''),
+        )
+        django_sender_addresses.append(django_sender_address)
+    if django_sender_addresses:
+        django_email.django_sender_addresses.add(*django_sender_address)
+
+    django_to_addresses = []
+    for to_address_result in email_result.get('to_addresses', []):
+        django_to_address, created = Address.objects.get_or_create(
+            address=to_address_result.get('address', ''),
+            name=to_address_result.get('name', ''),
+            content_type=to_address_result.get('content_type', ''),
+        )
+        django_to_addresses.append(django_to_address)
+    if django_to_addresses:
+        django_email.to_addresses.add(*django_to_addresses)
+
+    django_from_addresses = []
+    for from_address_result in email_result.get('from_addresses', []):
+        django_from_address, created = Address.objects.get_or_create(
+            address=from_address_result.get('address', ''),
+            name=from_address_result.get('name', ''),
+            content_type=from_address_result.get('content_type', ''),
+        )
+        django_from_addresses.append(django_from_address)
+    if django_from_addresses:
+        django_email.from_addresses.add(*django_from_addresses)
+
+    django_cc_addresses = []
+    for cc_address_result in email_result.get('cc_addresses', []):
+        django_cc_address, created = Address.objects.get_or_create(
+            address=cc_address_result.get('address', ''),
+            name=cc_address_result.get('name', ''),
+            content_type=cc_address_result.get('content_type', ''),
+        )
+        django_cc_addresses.append(django_cc_address)
+    if django_cc_addresses:
+        django_email.cc_addresses.add(
+            *django_cc_addresses)
 
     # 2.2 create category
+    primary_category_result = email_result.get('primary_category', None)
+    if primary_category_result:
+        primary_category, created = Category.objects.get_or_create(
+            name=primary_category_result.get('category_name', ''),
+            color=primary_category_result.get(
+                'background_color', ''),
+        )
+        django_email.primary_category = primary_category
+        django_email.save()
+
+    category_list_result = email_result.get('cc_addresses', [])
+    if category_list_result:
+        django_category_list = []
+        for category_result in category_list_result:
+            name = category_result.get('category_name', '')
+            color = category_result.get(
+                'background_color', '')
+            if name:
+                django_category_result, created = Category.objects.get_or_create(
+                    name=name,
+                    color=color,
+                )
+                django_category_list.append(django_category_result)
+        django_email.category_list.add(*django_category_list)
 
     # 2.3 create meeting
+    meeting_data = email_result.get('meeting_data', None)
+    if meeting_data:
+
+        django_meeting = export_fileobj_to_django(
+            olm_filename, meeting_data, Meeting)
+        django_email.meeting_data = django_meeting
+        django_email.save()
 
     # 2.4 create attachment
+    attachment_list = email_result.get('attachments', None)
+    if attachment_list:
+        for attachment in attachment_list:
+
+            django_attachment, created = Attachment.objects.get_or_create(
+                olm_filename=olm_filename,
+                olm_item_url=attachment.get('olm_item_url', ''),
+                email=django_email,
+            )
+            if not created:
+                log.error('This attachment has been used')
+                continue
+
+            with zipfile.ZipFile(olm_filename, mode='r', allowZip64=True) as zf:
+                with zf.open(attachment.get('olm_item_url', '')) as zip_data:
+                    django_attachment.file_obj = File(zip_data)
+
+                    django_attachment.content_extension = attachment.get(
+                        'content_extension', '')
+                    django_attachment.content_filesize = attachment.get(
+                        'content_filesize', None)
+                    django_attachment.content_type = attachment.get(
+                        'content_type', '')
+                    django_attachment.content_name = attachment.get(
+                        'content_name', '')
+                    # django_attachment.email = django_email
+                    django_attachment.save()
