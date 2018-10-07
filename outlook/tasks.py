@@ -90,7 +90,7 @@ def parse_olm_item(olm_filename, olm_item_url):
         return True
 
     elif dirs[1] == 'com.microsoft.__Messages':
-        if dirs[3] == 'com.microsoft.__Attachments':
+        if olm_item_url.find('com.microsoft.__Attachments') != -1:
             msg = 'Skip attchement file: [{}]'.format(olm_item_url)
             log.debug(msg)
             return True

@@ -49,7 +49,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'file_storage')
 SECRET_KEY = '6$8#wbl%mv@8nfsz_^611$^h838c0!3s_1q+r_n@g-c+@o=dd='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -108,7 +108,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'HOST': 'localhost',  # set in docker-compose.yml
-        'PORT': 32769  # default postgres port
+        'PORT': 32768  # default postgres port
     }
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
