@@ -11,15 +11,12 @@ class Address(models.Model):
         return '{}[{}]'.format(self.name, self.address)
 
     address = models.CharField(
-        verbose_name='address',
         max_length=255,
-        default='',
         blank=False,
         db_index=True,
     )
 
     name = models.CharField(
-        verbose_name='name',
         max_length=255,
         default='',
         blank=True,
@@ -27,9 +24,7 @@ class Address(models.Model):
     )
 
     content_type = models.CharField(
-        verbose_name='type',
         max_length=255,
         default='',
         blank=True,
-        db_index=True,
     )

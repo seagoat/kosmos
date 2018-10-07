@@ -26,6 +26,8 @@ CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_RESULT_BACKEND = 'db+sqlite:///results.sqlite'
 # CELERY_RESULT_BACKEND = 'django-db'
 # CELERY_RESULT_BACKEND = 'django-cache'
+CELERY_RESULT_BROKER = 'amqp://'
+CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_TASK_SERIALIZER = 'json'
 
 
@@ -49,9 +51,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'file_storage')
 SECRET_KEY = '6$8#wbl%mv@8nfsz_^611$^h838c0!3s_1q+r_n@g-c+@o=dd='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -108,7 +112,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'HOST': 'localhost',  # set in docker-compose.yml
-        'PORT': 32768  # default postgres port
+        'PORT': 32770  # default postgres port
     }
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
