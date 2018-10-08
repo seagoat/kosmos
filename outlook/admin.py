@@ -3,6 +3,11 @@ from django.contrib import admin
 from .models import Address, Attachment, Email, KosmosError, Meeting
 
 
+class AttachmentInline(admin.TabularInline):
+    model = Attachment
+    extra = 0
+
+
 class EmailAdmin(admin.ModelAdmin):
     # filter_horizontal = ('departments',)
     # list_max_show_all = 5
@@ -15,7 +20,17 @@ class EmailAdmin(admin.ModelAdmin):
         'cc_addresses',
 
     ]
-    pass
+
+    list_display = [
+        'subject',
+        'sent_time',
+        # 'from_addresses',
+        # 'to_addresses',
+    ]
+
+    inlines = [
+        AttachmentInline,
+    ]
 
 
 admin.site.register(Email, EmailAdmin)
