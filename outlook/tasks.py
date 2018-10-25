@@ -57,6 +57,13 @@ def parse_olm_dirs(olm_dirs):
 
 @shared_task
 def parse_olm(olm_filename):
+    # 1.0 check complete same path
+
+    # 2.0 check only filename and hash_value same
+    filename = os.path.basename(olm_filename)
+
+    # 3.0 parse olm and add tasks
+
     if not zipfile.is_zipfile(olm_filename):
         log.error('[{}] is not a zipfile'.format(olm_filename))
         return
@@ -576,7 +583,7 @@ def parse_email(olm_filename, olm_item_url):
                     count,
                     attachment.get_OPFAttachmentContentExtension(),
                     float(attachment.get_OPFAttachmentContentFileSize()
-                            ) / 1024.,
+                          ) / 1024.,
                     attachment.get_OPFAttachmentContentFileSize(),
                     # attachment.get_OPFAttachmentContentID(),
                     attachment.get_OPFAttachmentContentType(),

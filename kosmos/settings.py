@@ -112,7 +112,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'HOST': 'localhost',  # set in docker-compose.yml
-        'PORT': 32769  # default postgres port
+        'PORT': 32768  # default postgres port
     }
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',

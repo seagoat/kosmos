@@ -1,4 +1,7 @@
 from django.db import models
+from bs4 import BeautifulSoup
+import re
+cleanr = re.compile('<.*?>')
 
 
 class Email(models.Model):
@@ -219,3 +222,11 @@ class Email(models.Model):
         null=True,
         on_delete=models.CASCADE,
     )
+
+    @property
+    def clean_body(self):
+
+        # cleantext = re.sub(cleanr, '', self.body)
+        cleantext = BeautifulSoup(self.body, "lxml").get_text()
+        cleantext = BeautifulSoup(cleantext, "lxml").get_text()
+        return cleantext

@@ -12,6 +12,7 @@ class EmailAdmin(admin.ModelAdmin):
     # filter_horizontal = ('departments',)
     # list_max_show_all = 5
     readonly_fields = [
+        'clean_body',
         'sender_addresses',
         'bcc_addresses',
         'replyto_addresses',
